@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Literacy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #232336;
+    --accent: #7c6ff7;
+    --accent2: #3ecfb2;
+    --accent3: #f7c948;
+    --danger: #f76f6f;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --phase-colors: #7c6ff7, #3ecfb2, #f7c948, #f76f6f, #a78bfa, #60a5fa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-mark span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .user-xp {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .xp-badge {
+    background: linear-gradient(135deg, #7c6ff720, #3ecfb220);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+
+  .phase-group { margin-bottom: 4px; }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 0;
+    user-select: none;
+  }
+
+  .phase-header:hover { background: rgba(255,255,255,0.04); }
+
+  .phase-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .phase-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    flex: 1;
+  }
+
+  .phase-chevron {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+
+  .phase-group.open .phase-chevron { transform: rotate(90deg); }
+
+  .lesson-list { display: none; }
+  .phase-group.open .lesson-list { display: block; }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 20px 7px 38px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .lesson-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+  .lesson-item.active { color: var(--text); background: rgba(124,111,247,0.1); }
+  .lesson-item.completed { color: var(--accent2); }
+  .lesson-item.locked { opacity: 0.4; cursor: not-allowed; }
+
+  .lesson-status { font-size: 11px; flex-shrink: 0; }
+
+  /* MAIN */
+  .main {
+    margin-left: 280px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .breadcrumb strong { color: var(--text); font-weight: 500; }
+
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-label { font-size: 12px; color: var(--muted); }
+
+  .progress-bar {
+    width: 140px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* CONTENT */
+  .content {
+    flex: 1;
+    padding: 40px;
+    max-width: 820px;
+  }
+
+  /* HOME */
+  .home-hero {
+    padding: 60px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .hero-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 36px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover { background: #6b5ef0; transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .phase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .phase-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .phase-card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .phase-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .phase-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .phase-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .lesson-count {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .phase-progress {
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* LESSON */
+  .lesson-header {
+    margin-bottom: 32px;
+  }
+
+  .lesson-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lesson-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .section {
+    margin-bottom: 32px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .section p {
+    color: #b8b8d0;
+    line-height: 1.75;
+    margin-bottom: 10px;
+  }
+
+  .highlight-box {
+    background: rgba(124,111,247,0.08);
+    border: 1px solid rgba(124,111,247,0.25);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 16px 0;
+  }
+
+  .highlight-box p { margin: 0; color: var(--text); }
+
+  .analogy-box {
+    background: rgba(62,207,178,0.07);
+    border: 1px solid rgba(62,207,178,0.2);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 16px 0;
+  }
+
+  .analogy-box .analogy-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .analogy-box p { margin: 0; color: var(--text); }
+
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .role-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .role-name {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .role-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .diagram-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    white-space: pre;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+
+  .misconceptions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .myth-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .myth-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .myth-content strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .myth-content p { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  .takeaway-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .takeaway-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: #b8b8d0;
+    line-height: 1.5;
+  }
+
+  .takeaway-check {
+    color: var(--accent2);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .challenge-box {
+    background: linear-gradient(135deg, rgba(124,111,247,0.1), rgba(62,207,178,0.06));
+    border: 1px solid rgba(124,111,247,0.3);
+    border-radius: 12px;
+    padding: 22px;
+    margin: 16px 0;
+  }
+
+  .challenge-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .challenge-box p { margin: 0; font-size: 14px; color: #b8b8d0; }
+
+  .related-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .related-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .related-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+  .lesson-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* QUIZ */
+  .quiz-container { max-width: 720px; }
+
+  .quiz-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .quiz-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .quiz-meta { font-size: 13px; color: var(--muted); }
+
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .q-dots { display: flex; gap: 6px; }
+
+  .q-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .q-dot.answered { background: var(--accent2); }
+  .q-dot.current { background: var(--accent); }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .q-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .q-difficulty {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-left: 8px;
+  }
+
+  .q-difficulty.easy { background: rgba(62,207,178,0.15); color: var(--accent2); }
+  .q-difficulty.medium { background: rgba(247,201,72,0.15); color: var(--accent3); }
+  .q-difficulty.hard { background: rgba(247,111,111,0.15); color: var(--danger); }
+
+  .question-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 22px;
+    color: var(--text);
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+  }
+
+  .option:hover:not(.selected):not(.correct):not(.wrong) {
+    border-color: var(--accent);
+    background: rgba(124,111,247,0.06);
+  }
+
+  .option.selected { border-color: var(--accent); background: rgba(124,111,247,0.1); }
+  .option.correct { border-color: var(--accent2); background: rgba(62,207,178,0.1); }
+  .option.wrong { border-color: var(--danger); background: rgba(247,111,111,0.08); }
+
+  .option-letter {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+
+  .option.selected .option-letter { background: var(--accent); color: white; }
+  .option.correct .option-letter { background: var(--accent2); color: white; }
+  .option.wrong .option-letter { background: var(--danger); color: white; }
+
+  .option-text { font-size: 14px; color: var(--text); line-height: 1.5; padding-top: 2px; }
+
+  .explanation-box {
+    background: rgba(62,207,178,0.06);
+    border: 1px solid rgba(62,207,178,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #b8b8d0;
+    line-height: 1.6;
+  }
+
+  .explanation-box strong { color: var(--accent2); }
+
+  .quiz-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+
+  /* RESULTS */
+  .results-container {
+    max-width: 600px;
+    text-align: center;
+  }
+
+  .results-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    border: 3px solid;
+  }
+
+  .results-circle.pass { border-color: var(--accent2); box-shadow: 0 0 40px rgba(62,207,178,0.2); }
+  .results-circle.fail { border-color: var(--danger); box-shadow: 0 0 40px rgba(247,111,111,0.15); }
+
+  .results-pct {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+  }
+
+  .results-circle.pass .results-pct { color: var(--accent2); }
+  .results-circle.fail .results-pct { color: var(--danger); }
+
+  .results-label { font-size: 11px; color: var(--muted); }
+
+  .results-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .results-message { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+
+  .badge-award {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+  }
+
+  .badge-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .badge-info strong {
+    display: block;
+    font-size: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 4px;
+  }
+
+  .badge-info p { font-size: 12px; color: var(--muted); margin: 0; }
+
+  .xp-gained {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,111,247,0.15);
+    border: 1px solid rgba(124,111,247,0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+    .hero-title { font-size: 34px; }
+    .content { padding: 24px 20px; }
+  }
+
+  /* Tags for AI perspective */
+  .ai-box {
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(124,111,247,0.04));
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 12px 0;
+  }
+
+  .ai-box p { margin: 0; color: #b8b8d0; }
+
+  /* divider */
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+  .text-accent { color: var(--accent); }
+  .text-accent2 { color: var(--accent2); }
+  .text-muted { color: var(--muted); }
+
+  .inline-code {
+    background: rgba(124,111,247,0.15);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-mark">⚡ <span>Tech Literacy</span></div>
+      <div class="user-xp">
+        <span>Total XP:</span>
+        <span class="xp-badge" id="total-xp">0 XP</span>
+      </div>
+    </div>
+
+    <div class="sidebar-nav" id="sidebar-nav">
+      <!-- Generated by JS -->
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar" id="topbar">
+      <div class="breadcrumb" id="breadcrumb">
+        <span>🏠</span> <strong>Home</strong>
+      </div>
+      <div class="progress-bar-wrap">
+        <span class="progress-label" id="progress-label">0 / 56 lessons</span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-container">
+      <!-- HOME / LESSON / QUIZ / RESULTS -->
+    </div>
+  </main>
+</div>
+
+<script>
+// =====================================================
+// DATA
+// =====================================================
+const CURRICULUM = [
+  {
+    id: 'p1', title: 'Digital Foundations', icon: '💻',
+    color: '#7c6ff7',
+    purpose: 'Understand how computers work.',
+    lessons: [
+      { id: 'l1', title: 'Computer', xp: 100, badge: '🖥️', achievement: 'Tech Explorer' },
+      { id: 'l2', title: 'CPU', xp: 120, badge: '⚡', achievement: 'CPU Whisperer' },
+      { id: 'l3', title: 'RAM', xp: 120, badge: '🧠', achievement: 'Memory Master' },
+      { id: 'l4', title: 'Storage', xp: 100, badge: '💾', achievement: 'Storage Sage' },
+      { id: 'l5', title: 'Operating System', xp: 150, badge: '🪟', achievement: 'OS Operator' },
+      { id: 'l6', title: 'Files & File System', xp: 120, badge: '📁', achievement: 'File Navigator' },
+      { id: 'l7', title: 'Applications', xp: 100, badge: '📱', achievement: 'App Aware' },
+    ]
+  },
+  {
+    id: 'p2', title: 'Internet & Web', icon: '🌐',
+    color: '#3ecfb2',
+    purpose: 'Understand how the Internet works.',
+    lessons: [
+      { id: 'l8', title: 'Internet', xp: 100, badge: '🌍', achievement: 'Internet Explorer' },
+      { id: 'l9', title: 'Browser', xp: 100, badge: '🔍', achievement: 'Browser Pro' },
+      { id: 'l10', title: 'IP Address', xp: 120, badge: '📍', achievement: 'IP Detective' },
+      { id: 'l11', title: 'DNS', xp: 150, badge: '📖', achievement: 'DNS Decoder' },
+      { id: 'l12', title: 'Website', xp: 100, badge: '🌐', achievement: 'Web Watcher' },
+      { id: 'l13', title: 'HTTP', xp: 150, badge: '📡', achievement: 'HTTP Hero' },
+      { id: 'l14', title: 'HTTPS', xp: 150, badge: '🔒', achievement: 'Security Scout' },
+      { id: 'l15', title: 'Domain', xp: 120, badge: '🏷️', achievement: 'Domain Guru' },
+      { id: 'l16', title: 'Hosting', xp: 120, badge: '🏠', achievement: 'Host Master' },
+      { id: 'l17', title: 'Server', xp: 150, badge: '🖧', achievement: 'Server Sage' },
+      { id: 'l18', title: 'CDN', xp: 150, badge: '⚡', achievement: 'Speed Demon' },
+      { id: 'l19', title: 'Cache', xp: 120, badge: '💨', achievement: 'Cache Champion' },
+    ]
+  },
+  {
+    id: 'p3', title: 'How Software Works', icon: '⚙️',
+    color: '#f7c948',
+    purpose: 'Understand how software products are built.',
+    lessons: [
+      { id: 'l20', title: 'Frontend', xp: 150, badge: '🎨', achievement: 'Frontend Friendly' },
+      { id: 'l21', title: 'Backend', xp: 150, badge: '⚙️', achievement: 'Backend Brave' },
+      { id: 'l22', title: 'Database', xp: 170, badge: '🗄️', achievement: 'Data Defender' },
+      { id: 'l23', title: 'API', xp: 200, badge: '🔌', achievement: 'API Explorer' },
+      { id: 'l24', title: 'Authentication', xp: 170, badge: '🔑', achievement: 'Auth Agent' },
+      { id: 'l25', title: 'Authorization', xp: 170, badge: '🛡️', achievement: 'Permission Pro' },
+      { id: 'l26', title: 'JSON', xp: 150, badge: '📋', achievement: 'JSON Jedi' },
+      { id: 'l27', title: 'REST API', xp: 200, badge: '🔄', achievement: 'REST Ranger' },
+      { id: 'l28', title: 'Session', xp: 150, badge: '⏱️', achievement: 'Session Savant' },
+      { id: 'l29', title: 'Cookies', xp: 150, badge: '🍪', achievement: 'Cookie Crafter' },
+      { id: 'l30', title: 'Client vs Server', xp: 170, badge: '🤝', achievement: 'Bridge Builder' },
+      { id: 'l31', title: 'Software Architecture', xp: 220, badge: '🏗️', achievement: 'Architect Apprentice' },
+    ]
+  },
+  {
+    id: 'p4', title: 'Build Your First Product', icon: '🛠️',
+    color: '#f76f6f',
+    purpose: 'Learn enough coding to understand and build simple products.',
+    lessons: [
+      { id: 'l32', title: 'HTML', xp: 150, badge: '🧱', achievement: 'HTML Hero' },
+      { id: 'l33', title: 'CSS', xp: 150, badge: '🎨', achievement: 'Style Star' },
+      { id: 'l34', title: 'JavaScript Basics', xp: 200, badge: '✨', achievement: 'JS Starter' },
+      { id: 'l35', title: 'Variables', xp: 150, badge: '📦', achievement: 'Variable Victor' },
+      { id: 'l36', title: 'Functions', xp: 170, badge: '🔧', achievement: 'Function Finder' },
+      { id: 'l37', title: 'Logic', xp: 170, badge: '🧩', achievement: 'Logic Legend' },
+      { id: 'l38', title: 'Git', xp: 200, badge: '🌿', achievement: 'Git Getter' },
+      { id: 'l39', title: 'GitHub', xp: 150, badge: '🐙', achievement: 'GitHub Graduate' },
+      { id: 'l40', title: 'VS Code', xp: 120, badge: '💻', achievement: 'Code Editor Ace' },
+      { id: 'l41', title: 'Command Line', xp: 170, badge: '⌨️', achievement: 'Terminal Tamer' },
+      { id: 'l42', title: 'Debugging Basics', xp: 200, badge: '🐛', achievement: 'Bug Buster' },
+    ]
+  },
+  {
+    id: 'p5', title: 'AI & Automation', icon: '🤖',
+    color: '#a78bfa',
+    purpose: 'Understand modern AI.',
+    lessons: [
+      { id: 'l43', title: 'Artificial Intelligence', xp: 150, badge: '🤖', achievement: 'AI Aware' },
+      { id: 'l44', title: 'Machine Learning', xp: 200, badge: '📈', achievement: 'ML Mapper' },
+      { id: 'l45', title: 'Large Language Models', xp: 200, badge: '💬', achievement: 'LLM Learner' },
+      { id: 'l46', title: 'Prompt Engineering', xp: 220, badge: '✏️', achievement: 'Prompt Pro' },
+      { id: 'l47', title: 'Tokens', xp: 170, badge: '🪙', achievement: 'Token Tracker' },
+      { id: 'l48', title: 'Context Window', xp: 170, badge: '🪟', achievement: 'Context Captain' },
+      { id: 'l49', title: 'Hallucination', xp: 200, badge: '👁️', achievement: 'Reality Checker' },
+      { id: 'l50', title: 'Embeddings', xp: 220, badge: '🌌', achievement: 'Embedding Explorer' },
+      { id: 'l51', title: 'Vector Database', xp: 220, badge: '📐', achievement: 'Vector Voyager' },
+      { id: 'l52', title: 'RAG', xp: 250, badge: '🔗', achievement: 'RAG Ranger' },
+      { id: 'l53', title: 'AI Agents', xp: 250, badge: '🕵️', achievement: 'Agent Architect' },
+      { id: 'l54', title: 'MCP', xp: 250, badge: '🔌', achievement: 'Protocol Pioneer' },
+      { id: 'l55', title: 'Automation', xp: 200, badge: '⚙️', achievement: 'Automation Ace' },
+      { id: 'l56', title: 'AI Workflow', xp: 220, badge: '🔄', achievement: 'Workflow Wizard' },
+    ]
+  },
+  {
+    id: 'p6', title: 'Cloud & Deployment', icon: '☁️',
+    color: '#60a5fa',
+    purpose: 'Understand how software reaches users.',
+    lessons: [
+      { id: 'l57', title: 'Cloud Computing', xp: 200, badge: '☁️', achievement: 'Cloud Climber' },
+      { id: 'l58', title: 'Hosting', xp: 150, badge: '🏠', achievement: 'Host Hero' },
+      { id: 'l59', title: 'Deployment', xp: 200, badge: '🚀', achievement: 'Deploy Daredevil' },
+      { id: 'l60', title: 'Domain', xp: 150, badge: '🏷️', achievement: 'Domain Diplomat' },
+      { id: 'l61', title: 'DNS Review', xp: 150, badge: '📖', achievement: 'DNS Veteran' },
+      { id: 'l62', title: 'CDN Review', xp: 150, badge: '⚡', achievement: 'CDN Commander' },
+      { id: 'l63', title: 'Databases in the Cloud', xp: 220, badge: '🗄️', achievement: 'Cloud DB Pro' },
+      { id: 'l64', title: 'Monitoring', xp: 200, badge: '📊', achievement: 'Monitor Master' },
+      { id: 'l65', title: 'Analytics', xp: 170, badge: '📈', achievement: 'Analytics Ace' },
+      { id: 'l66', title: 'Security Basics', xp: 220, badge: '🔐', achievement: 'Security Sentinel' },
+    ]
+  }
+];
+
+// Full lesson content for key lessons, generated inline
+const LESSON_CONTENT = {
+  'l1': {
+    why: "Everything in your digital work life runs on a computer — your email, your CRM, your spreadsheets, your Zoom calls. If you understand what a computer actually is, you'll never be confused again when IT asks 'how much RAM do you have?' or when a developer says 'that feature is computationally expensive.'",
+    definition: "A computer is a machine that takes information in, processes it according to instructions, and gives you a result back. That's it. Input → Process → Output.",
+    analogy: "🍳 Think of a computer like a restaurant kitchen. You (the user) place an order (input). The chef (CPU) reads the recipe (software) and cooks your meal (processes). The finished dish comes out (output). The fridge stores ingredients (storage), and the counter space is where active cooking happens (RAM).",
+    howItWorks: "Every computer — whether it's a laptop, phone, or server — has four core parts working together:\n\n• **Input**: Keyboard, mouse, microphone — how you talk to the computer\n• **CPU**: The brain that does all the thinking\n• **Memory (RAM)**: Temporary workspace while the computer works\n• **Storage**: Where everything is saved permanently\n• **Output**: Screen, speakers — how the computer talks back to you",
+    diagram: `  YOU
+   │
+   ▼
+[INPUT] ──────────────────────
+   │         ▲               │
+   ▼         │               │
+ [CPU] ◄────[RAM]           │
+   │         │               │
+   ▼         ▼               │
+[OUTPUT] ◄──────────────────
+              │
+          [STORAGE]`,
+    realWorld: [
+      "When you open Excel, the file is loaded from **storage** into **RAM** so the CPU can work with it fast.",
+      "When your laptop gets slow, often it's because the CPU is overwhelmed or RAM is full.",
+      "Cloud services like Google Drive are just computers you access over the internet — someone else's storage."
+    ],
+    roles: {
+      HR: "Understanding that 'slow computer' complaints usually mean RAM or CPU issues helps you prioritize IT requests intelligently.",
+      Marketing: "Knowing why video rendering or design tools need powerful computers helps justify hardware budgets.",
+      Sales: "When clients complain about software being slow, you can speak intelligently about hardware requirements.",
+      "Business Analyst": "Helps you understand system requirements when evaluating new software tools.",
+      "Product Manager": "Knowing compute costs helps you make informed infrastructure decisions.",
+      Developer: "Foundation knowledge for every performance, architecture, and optimization conversation."
+    },
+    ai: "AI models like ChatGPT run on thousands of computers working together. The reason AI takes a second to respond is that the CPU is doing billions of calculations to generate your answer. Modern AI requires extremely powerful hardware — one reason cloud services exist.",
+    misconceptions: [
+      { myth: "More storage = faster computer", truth: "Storage size doesn't affect speed. More RAM or a faster CPU does. A 1TB slow laptop is slower than a 256GB fast one." },
+      { myth: "Computers understand your language", truth: "Computers only understand 0s and 1s (binary). All your text, images, and video get translated into numbers." },
+      { myth: "Macs don't get viruses", truth: "Any computer can get malware. Macs are just less targeted because they have a smaller market share." }
+    ],
+    takeaways: [
+      "A computer takes input, processes it with a CPU, and gives output",
+      "RAM is temporary workspace; Storage is permanent memory",
+      "All software runs on top of hardware",
+      "Understanding computers helps you communicate better with IT and developers"
+    ],
+    challenge: "Look at your current computer's specs. Find: (1) CPU name, (2) RAM size in GB, (3) Storage size. Compare with a colleague's machine. Which would handle heavy video editing better?",
+    related: ['CPU', 'RAM', 'Storage', 'Operating System']
+  },
+  'l2': {
+    why: "Every time someone says 'this takes too long to compute' or 'we need more processing power for this AI feature', they're talking about the CPU. Understanding it makes you smarter in every tech conversation.",
+    definition: "The CPU (Central Processing Unit) is the brain of the computer. It executes instructions — billions of them per second — to run all your software.",
+    analogy: "🧑‍🍳 The CPU is like a master chef in a kitchen. A faster chef can prepare more dishes per minute. A multi-core CPU is like having multiple chefs working simultaneously — each handling a different dish.",
+    howItWorks: "The CPU works in a cycle: **Fetch** (get the next instruction) → **Decode** (understand it) → **Execute** (do it). Modern CPUs do this billions of times per second.\n\n**Clock Speed** (GHz): How many cycles per second. 3.5GHz = 3.5 billion cycles/second.\n\n**Cores**: Independent processing units. More cores = more tasks simultaneously.\n\n**Cache**: Tiny ultra-fast memory built into the CPU for frequently used data.",
+    diagram: `  PROGRAM INSTRUCTIONS
+         │
+         ▼
+    ┌─────────────────┐
+    │       CPU        │
+    │  ┌───┐  ┌───┐  │
+    │  │ C1│  │ C2│  │  ← Cores
+    │  └───┘  └───┘  │
+    │  ┌───┐  ┌───┐  │
+    │  │ C3│  │ C4│  │
+    │  └───┘  └───┘  │
+    │   [CACHE L1/L2] │
+    └─────────────────┘
+         │
+         ▼
+      RESULT`,
+    realWorld: [
+      "When your browser tab freezes, the CPU is maxed out processing something.",
+      "AI image generation is 'GPU-intensive' — a GPU is like a CPU specialized for parallel math.",
+      "Running Zoom + Excel + Slack simultaneously is why 8-core laptops exist."
+    ],
+    roles: {
+      HR: "When evaluating computers for remote workers, CPU specs determine who can run video calls and software smoothly.",
+      Marketing: "Rendering video ads or running analytics dashboards is CPU-heavy — this affects tool selection.",
+      Sales: "Demo environments need fast CPUs or prospects will see slow, unimpressive performance.",
+      "Business Analyst": "Process automation scripts and data analysis tools benefit from faster CPUs.",
+      "Product Manager": "Features requiring real-time computation (live search, calculations) are 'CPU-intensive' — important for architecture decisions.",
+      Developer: "CPU selection affects build times, test execution speed, and server costs."
+    },
+    ai: "Training AI models requires enormous CPU (and GPU) power — often thousands of chips running for weeks. When you use Claude or ChatGPT, every word in your response required CPU cycles. This is why AI APIs charge per token — compute costs money.",
+    misconceptions: [
+      { myth: "More GHz always means faster", truth: "Clock speed matters less than architecture. A modern 3GHz chip often beats an older 4GHz chip." },
+      { myth: "CPU and GPU are the same", truth: "CPUs handle general tasks well. GPUs are specialized for parallel math — critical for AI and graphics." },
+      { myth: "You can feel every CPU difference", truth: "For normal office work, a modern mid-range CPU is more than sufficient. Differences matter for AI/video/gaming." }
+    ],
+    takeaways: [
+      "CPU is the computer's brain — it executes all instructions",
+      "Clock speed (GHz) and core count determine performance",
+      "More cores = better multitasking",
+      "AI and video work is CPU/GPU intensive — important for tool selection"
+    ],
+    challenge: "Open your Task Manager (Windows) or Activity Monitor (Mac). Watch the CPU usage while opening a new browser tab. What happens? Which application uses the most CPU on your machine right now?",
+    related: ['Computer', 'RAM', 'GPU', 'Cloud Computing']
+  },
+  'l23': {
+    why: "If you work with developers, use SaaS tools, or want to build digital products, APIs are EVERYWHERE. They're how every modern application works. Understanding APIs makes you a 10x better Product Manager, Business Analyst, or technical collaborator.",
+    definition: "An API (Application Programming Interface) is a way for two software applications to talk to each other. It's a set of rules that defines how one program can request data or actions from another.",
+    analogy: "🍽️ An API is like a waiter in a restaurant. You (the client app) sit at the table. The kitchen (the server) has all the food (data). You don't walk into the kitchen yourself — the waiter (API) takes your order, goes to the kitchen, and brings back exactly what you asked for.",
+    howItWorks: "An API works via **requests** and **responses**:\n\n1. Your app makes a **Request** (\"Give me the weather in Hanoi\")\n2. The request goes to an **Endpoint** (a specific URL address)\n3. The server **Processes** the request\n4. The server sends back a **Response** (JSON data with the weather)\n\nAPIs use HTTP methods:\n• **GET** — Read data\n• **POST** — Create new data\n• **PUT** — Update existing data\n• **DELETE** — Remove data",
+    diagram: `  YOUR APP                  WEATHER SERVICE
+     │                              │
+     │  GET /weather?city=Hanoi     │
+     │ ─────────────────────────► │
+     │                              │
+     │  { "temp": 32, "rain": true }│
+     │ ◄───────────────────────── │
+     │                              │
+  DISPLAY                       DATABASE
+  "32°C ☔"              (stores weather data)`,
+    realWorld: [
+      "When you log into a website with Google, that site uses Google's **Authentication API**.",
+      "When Grab shows you a map, it's using **Google Maps API**.",
+      "When your CRM syncs with email, it uses an **email API** (like Gmail API).",
+      "ChatGPT's API lets developers add AI to their own products."
+    ],
+    roles: {
+      HR: "HR platforms integrate with payroll, attendance, and email tools via APIs — understanding this helps you evaluate integrations.",
+      Marketing: "Marketing platforms sync with CRMs, ad platforms, and analytics via APIs. Knowing this helps troubleshoot 'why isn't this syncing?'",
+      Sales: "Your CRM's ability to connect with other tools depends on its APIs. This matters when evaluating sales tools.",
+      "Business Analyst": "APIs are how data flows between systems. Understanding them is essential for integration requirements.",
+      "Product Manager": "Every feature that connects to another service uses an API. You'll define API requirements constantly.",
+      Developer: "APIs are the foundation of modern software architecture. This is day-one knowledge."
+    },
+    ai: "AI APIs like the Anthropic Claude API or OpenAI API are how developers add AI to their products. You send text, get text back. The entire AI product ecosystem is built on APIs — no API access = no AI product.",
+    misconceptions: [
+      { myth: "APIs are only for developers", truth: "No-code tools like Zapier, Make, and n8n let non-developers use APIs with zero code. Understanding APIs makes you a power user of these tools." },
+      { myth: "Every API is free", truth: "Many APIs charge per use (per request or per token). ChatGPT's API costs money based on how much text you send/receive." },
+      { myth: "APIs always respond instantly", truth: "APIs can be slow or fail. Good products handle API errors gracefully so users don't see crashes." }
+    ],
+    takeaways: [
+      "APIs let software applications communicate with each other",
+      "Every modern app uses multiple APIs",
+      "APIs use requests (what you want) and responses (what you get)",
+      "Understanding APIs helps you evaluate integrations and build products"
+    ],
+    challenge: "Go to weather.gov or any weather website. Right-click and 'Inspect'. Go to the 'Network' tab and reload the page. You'll see API calls being made in real time — the website asking servers for weather data.",
+    related: ['REST API', 'JSON', 'Backend', 'Authentication']
+  },
+  'l46': {
+    why: "Prompt engineering is the skill of 2024-2025. Anyone who can communicate clearly with AI gets dramatically better results. This is like learning to Google effectively — except 10x more impactful.",
+    definition: "Prompt engineering is the skill of crafting instructions (prompts) to get the best possible output from an AI model. It's about learning the language AI understands.",
+    analogy: "🎯 Prompting AI is like briefing a brilliant new employee on their first day. They're smart but know nothing about your specific situation. The more context, examples, and clear instructions you give, the better their output. 'Write a report' gets mediocre results. 'Write a 500-word executive summary of our Q3 sales data in a professional tone, structured as: situation → finding → recommendation' gets great results.",
+    howItWorks: "**Core Prompting Techniques:**\n\n**1. Be Specific**\nBad: 'Write an email'\nGood: 'Write a follow-up email to a SaaS client who attended our demo but hasn't responded in 5 days. Professional tone, under 100 words.'\n\n**2. Give Context**\nTell the AI who you are, who the audience is, what the goal is.\n\n**3. Use Examples** (Few-shot prompting)\nShow the AI the format you want: 'Format it like this: [example]'\n\n**4. Assign a Role**\n'Act as a senior HR consultant with 15 years experience...'\n\n**5. Chain of Thought**\n'Think step by step before answering...'\n\n**6. Specify Format**\n'Respond in bullet points / JSON / a table / markdown'",
+    diagram: `  WEAK PROMPT                  STRONG PROMPT
+  ─────────────               ───────────────
+  "Summarize this"            "You are an executive 
+                               assistant. Summarize
+  → Generic, vague            the following meeting
+    output                    transcript in 5 bullets,
+                               each starting with an
+                               action verb. Audience:
+                               CEO who was absent."
+
+                              → Precise, usable
+                                output`,
+    realWorld: [
+      "A recruiter who prompts well can generate 10 tailored job descriptions in minutes instead of hours.",
+      "A marketer who prompts well can A/B test 20 email subject lines in minutes.",
+      "A PM who prompts well can generate user stories, PRDs, and competitive analysis at 5x speed.",
+      "A BA who prompts well can analyze data, spot patterns, and generate reports automatically."
+    ],
+    roles: {
+      HR: "Generate job descriptions, interview questions, policy documents, and onboarding materials with precise prompts.",
+      Marketing: "Write ad copy, email sequences, social posts, and content briefs. Prompt quality directly impacts content quality.",
+      Sales: "Generate personalized outreach emails, proposals, and objection-handling scripts at scale.",
+      "Business Analyst": "Structure complex data into insights, generate requirements documents, and analyze processes.",
+      "Product Manager": "Generate PRDs, user stories, competitive analysis, and feature specifications quickly.",
+      Developer: "Generate code, debug, write tests, and document systems. Prompt quality affects code quality."
+    },
+    ai: "Prompt engineering IS AI literacy for non-technical professionals. The best prompt engineers often aren't engineers at all — they're clear thinkers and strong writers. As AI models improve, prompting becomes less about tricks and more about clear communication. The skill transfers across all AI tools.",
+    misconceptions: [
+      { myth: "More words = better prompt", truth: "Clarity matters more than length. A focused 50-word prompt often beats a rambling 500-word one." },
+      { myth: "There's a magic prompt that works every time", truth: "Good prompting is iterative. You test, refine, and improve. There's no universal magic formula." },
+      { myth: "Prompt engineering is a developer skill", truth: "Non-technical professionals often become the best prompt engineers because writing clearly is a communication skill, not a coding skill." }
+    ],
+    takeaways: [
+      "Prompts are instructions to AI — quality of input determines quality of output",
+      "Be specific: role, context, format, audience, goal",
+      "Use examples to show AI the format you want",
+      "Prompt engineering is iterative — test and refine",
+      "This is one of the most valuable skills you can develop right now"
+    ],
+    challenge: "Take a task you do regularly (email, report, analysis). Write a weak prompt and a strong prompt for it. Test both in Claude or ChatGPT. Compare the outputs. What changed?",
+    related: ['Large Language Models', 'Tokens', 'Context Window', 'AI Agents']
+  }
+};
+
+// Generate quiz questions for lessons
+const QUIZZES = {
+  'l1': {
+    questions: [
+      {
+        q: "Your laptop is running slowly when you have 15 browser tabs open. What is MOST LIKELY the cause?",
+        options: ["Your storage is full", "Your RAM is overwhelmed", "Your screen needs updating", "The keyboard is faulty"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "RAM (Random Access Memory) is the temporary workspace where active programs run. Opening 15 tabs uses significant RAM. When RAM fills up, the computer slows dramatically."
+      },
+      {
+        q: "A colleague says their computer has '1TB storage but only 8GB RAM.' Which is the temporary workspace?",
+        options: ["1TB storage", "8GB RAM", "Both equally", "Neither — it's the CPU"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "RAM (8GB) is temporary workspace. Storage (1TB) is permanent saving space. They serve completely different purposes."
+      },
+      {
+        q: "Which component executes the instructions that make software run?",
+        options: ["RAM", "Storage", "CPU", "Monitor"],
+        correct: 2,
+        difficulty: 'easy',
+        explanation: "The CPU (Central Processing Unit) is the brain that executes all instructions. RAM stores them temporarily; the CPU runs them."
+      },
+      {
+        q: "A marketing team needs to render 4K video files. Which component matters MOST for this task?",
+        options: ["Larger screen", "More storage", "Faster CPU/GPU", "Better keyboard"],
+        correct: 2,
+        difficulty: 'easy',
+        explanation: "Video rendering is computationally intensive — it's CPU and GPU heavy. More storage doesn't make rendering faster."
+      },
+      {
+        q: "Sarah closes all her applications but her computer is still slow. She restarts it and it's fast again. What most likely happened?",
+        options: ["Storage became corrupted", "RAM was not cleared between sessions, causing buildup", "The CPU broke temporarily", "The monitor lost signal"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Restarting clears RAM completely. Sometimes software leaks leave data in RAM even after closing. A restart returns RAM to a clean state."
+      },
+      {
+        q: "A Product Manager is evaluating cloud software for the team. The vendor says 'it runs in the cloud.' What does this mean?",
+        options: ["The software is stored in the sky", "The software runs on computers owned by someone else, accessed via the internet", "The software uses less storage", "The software is always offline"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Cloud means the software runs on remote computers (servers) that you access over the internet, rather than on your local machine."
+      },
+      {
+        q: "Which analogy BEST describes how computer components work together?",
+        options: ["A library where all books are always open", "A kitchen: chef (CPU) cooks using counter space (RAM) with ingredients from the fridge (storage)", "A TV that only receives signals", "A telephone that only makes calls"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "The kitchen analogy captures the relationship: CPU processes, RAM provides temporary workspace, and Storage holds data permanently — just like a chef, counter, and fridge."
+      },
+      {
+        q: "Your HR system vendor says the new feature requires 'more compute resources.' What are they referring to?",
+        options: ["More internet bandwidth", "More CPU processing power and potentially RAM", "A larger monitor", "More users"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "'Compute resources' refers to CPU processing power and memory (RAM). When features are computationally expensive, they need more hardware resources."
+      },
+      {
+        q: "A developer tells you 'this AI feature is computationally expensive to run at scale.' What does this mean for your product budget?",
+        options: ["The feature will need expensive UI design", "Running this feature will require significant CPU/cloud compute costs, increasing infrastructure expenses", "The feature needs expensive legal review", "The feature requires more sales staff"],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "Computationally expensive AI features require significant CPU/GPU cycles on servers. At scale, this translates directly to cloud infrastructure costs that grow with usage."
+      },
+      {
+        q: "An office installs a new analytics platform. Users complain it's slower than the old spreadsheet system. The vendor says 'the application is processing more data.' Which explanation is MOST technically accurate?",
+        options: ["The internet is slower at that office", "The analytics platform requires more CPU cycles to process complex queries compared to simple spreadsheet calculations", "The new software has more bugs", "Users need more training"],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "Complex analytics queries (joins, aggregations, visualizations) require substantially more CPU computation than simple spreadsheet arithmetic. This is a legitimate hardware/software scaling issue."
+      }
+    ]
+  },
+  'l23': {
+    questions: [
+      {
+        q: "What does API stand for?",
+        options: ["Advanced Program Interface", "Application Programming Interface", "Automated Process Integration", "Application Process Instruction"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "API stands for Application Programming Interface — a set of rules that allows applications to communicate with each other."
+      },
+      {
+        q: "In the restaurant analogy for APIs, who is the 'waiter'?",
+        options: ["The user making requests", "The database storing data", "The API itself", "The server processing the order"],
+        correct: 2,
+        difficulty: 'easy',
+        explanation: "The API is the waiter — it takes your request (order), delivers it to the kitchen (server), and brings back the response (food)."
+      },
+      {
+        q: "You log into Shopify using your Google account. What is happening behind the scenes?",
+        options: ["Shopify copies your Google password", "Shopify uses Google's Authentication API to verify your identity", "Google owns Shopify", "Your browser automatically fills in the form"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "'Login with Google' uses Google's OAuth API. Shopify requests your identity from Google's API; Google confirms it without sharing your password."
+      },
+      {
+        q: "Which HTTP method would you use to CREATE a new customer record in a CRM?",
+        options: ["GET", "DELETE", "POST", "READ"],
+        correct: 2,
+        difficulty: 'easy',
+        explanation: "POST is used to create new data. GET retrieves data, PUT updates it, and DELETE removes it."
+      },
+      {
+        q: "Your company's CRM 'syncs' with your email platform every hour. What makes this possible?",
+        options: ["Employees manually copy data between systems", "Both platforms share APIs that allow data exchange", "The platforms share the same database", "IT schedules manual exports"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Integration between platforms happens via APIs. Each system exposes API endpoints that allow the other to read and write data automatically."
+      },
+      {
+        q: "A developer says 'the payment API is returning a 500 error.' What does this mean for your product?",
+        options: ["500 payments were processed", "The payment system's server encountered an internal error and payments cannot be processed", "The API costs $500", "500 users tried to pay simultaneously"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "HTTP status code 500 means 'Internal Server Error' — the server crashed or encountered a problem. This would block payment processing."
+      },
+      {
+        q: "A Product Manager says 'we need to integrate with Salesforce.' What are they actually describing?",
+        options: ["Hiring Salesforce employees", "Building or using an API connection between your product and Salesforce", "Buying Salesforce software", "Training staff on Salesforce"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Integration means connecting two systems via API so they can share data. Your product would use Salesforce's API to read/write CRM data."
+      },
+      {
+        q: "Which tool allows non-developers to connect APIs without writing code?",
+        options: ["Microsoft Word", "Zapier or Make (formerly Integromat)", "Google Drive", "Zoom"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Zapier and Make are no-code automation tools that connect different apps via their APIs. No coding required — you configure connections visually."
+      },
+      {
+        q: "Your team wants to add AI writing assistance to your internal tool. The developer says 'we'll use the Claude API.' What does this mean technically?",
+        options: ["The team will hire Anthropic employees", "Your tool will send text to Anthropic's servers via API and receive AI-generated responses back", "You'll install Claude locally on your server", "Claude will have direct database access"],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "Using an AI API means your application makes HTTP requests to the AI provider's servers, sending prompts and receiving generated text back. Anthropic processes the request on their infrastructure."
+      },
+      {
+        q: "A vendor says their API is 'rate limited to 1,000 requests per hour.' Your product processes 500 user actions per hour during peak time, each requiring 3 API calls. What problem do you face?",
+        options: ["No problem — 1,000 requests is plenty", "At 1,500 requests/hour peak, you'll exceed the limit and some features will fail", "The API is too fast", "You need more users"],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "500 actions × 3 calls = 1,500 requests/hour peak, exceeding the 1,000 limit. This requires either negotiating a higher rate limit, optimizing to reduce API calls, or caching responses."
+      }
+    ]
+  },
+  'l46': {
+    questions: [
+      {
+        q: "What is prompt engineering?",
+        options: ["Building AI hardware", "Crafting instructions to get the best output from an AI model", "Programming in Python", "Designing AI interfaces"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "Prompt engineering is the skill of writing clear, effective instructions (prompts) to guide AI models toward useful, accurate outputs."
+      },
+      {
+        q: "Which prompt is STRONGER for getting useful AI output?",
+        options: [
+          "Write an email",
+          "Write a 3-sentence follow-up email to a prospect who attended our SaaS demo last week but hasn't responded. Professional but warm tone.",
+          "Write something for work",
+          "Email please"
+        ],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "The strong prompt includes: purpose (follow-up), context (SaaS demo, last week, no response), format (3 sentences), and tone (professional but warm). More specific = better output."
+      },
+      {
+        q: "What does 'few-shot prompting' mean?",
+        options: ["Using AI only a few times", "Providing examples in your prompt to show AI the format you want", "Limiting AI to short responses", "Using small AI models"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "Few-shot prompting means giving the AI examples of what you want ('Here's an example of the format: [example]'). AI learns from these examples to match your expected output."
+      },
+      {
+        q: "A marketer wants AI to write in their brand voice. What technique helps MOST?",
+        options: ["Asking the AI to 'be creative'", "Providing 2-3 examples of previous brand content and saying 'match this tone'", "Using all caps in the prompt", "Writing a very short prompt"],
+        correct: 1,
+        difficulty: 'easy',
+        explanation: "Providing examples (few-shot) is the most effective way to communicate tone and style. AI learns from patterns in examples far better than abstract descriptions like 'be creative.'"
+      },
+      {
+        q: "An HR manager gets generic job descriptions from AI. Which prompt MOST improves the output?",
+        options: [
+          "Write a better job description",
+          "You are a senior HR specialist at a fast-growing tech startup. Write a job description for a Sales Development Representative targeting experienced B2B SaaS sales reps. Include: responsibilities, requirements, and company culture. Format: bullets.",
+          "Make it longer",
+          "Try again with more detail"
+        ],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "This prompt assigns a role, gives context (fast-growing tech startup), specifies the audience (experienced B2B SaaS reps), names required sections, and specifies format. Every element improves output quality."
+      },
+      {
+        q: "You ask an AI: 'Summarize this meeting.' The output is too long and misses the key decisions. What should you add to your prompt?",
+        options: ["Remove all context from the prompt", "Specify format: 'List only the key decisions made, in 5 bullets. Each bullet starts with an action verb.'", "Ask the AI to 'be smarter'", "Use a different AI product"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Adding format constraints (bullets, length, structure) and specifying what to focus on (key decisions) directly addresses both problems: length and relevance."
+      },
+      {
+        q: "A PM consistently gets poor AI output for technical requirement documents. The MOST likely root cause is:",
+        options: ["The AI model is broken", "The prompts lack sufficient context about the product, audience, and required structure", "AI cannot help with technical documents", "The PM needs to learn to code first"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "Poor AI output almost always traces to insufficient context in the prompt. Technical documents need: product context, audience (developers? stakeholders?), required sections, and examples."
+      },
+      {
+        q: "Which technique helps AI reason through complex problems more accurately?",
+        options: ["Using emojis in the prompt", "Asking AI to 'think step by step' before answering", "Writing shorter prompts", "Translating prompts into another language"],
+        correct: 1,
+        difficulty: 'medium',
+        explanation: "'Think step by step' (Chain of Thought prompting) encourages the AI to reason through problems rather than jump to a conclusion, improving accuracy on complex tasks."
+      },
+      {
+        q: "A business analyst uses AI to analyze customer feedback. She gets vague insights. What MOST improves her results?",
+        options: [
+          "Ask for a longer analysis",
+          "Structure the prompt: 'Analyze these 50 customer reviews. Identify: top 3 complaints, top 3 praises, and 3 product improvement recommendations. Prioritize by frequency. Output as a table.'",
+          "Use a different AI tool",
+          "Ask AI to 'do better'"
+        ],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "This prompt specifies task (analyze), data (50 reviews), output structure (complaints/praises/recommendations), prioritization method (frequency), and format (table). This precision directly yields structured, useful output."
+      },
+      {
+        q: "As AI models improve, the value of prompt engineering will:",
+        options: [
+          "Disappear — AI will understand anything",
+          "Shift from memorizing tricks to focusing on clear communication and context-setting",
+          "Require learning Python to be effective",
+          "Only matter for technical users"
+        ],
+        correct: 1,
+        difficulty: 'hard',
+        explanation: "As models improve, they handle ambiguous prompts better but still fundamentally need clear goals, context, and constraints. The skill evolves from 'tricks' to clear thinking and communication — which is why non-technical professionals excel at it."
+      }
+    ]
+  }
+};
+
+// =====================================================
+// STATE
+// =====================================================
+let state = {
+  view: 'home',
+  currentPhase: null,
+  currentLesson: null,
+  currentQuiz: null,
+  quizAnswers: {},
+  quizSubmitted: false,
+  totalXP: 0,
+  completed: new Set(),
+  expandedPhases: new Set(['p1']),
+};
+
+// =====================================================
+// HELPERS
+// =====================================================
+function totalLessons() {
+  return CURRICULUM.reduce((s, p) => s + p.lessons.length, 0);
+}
+
+function getLessonIndex(lessonId) {
+  let idx = 0;
+  for (const phase of CURRICULUM) {
+    for (const lesson of phase.lessons) {
+      if (lesson.id === lessonId) return idx;
+      idx++;
+    }
+  }
+  return -1;
+}
+
+function isLessonUnlocked(lessonId) {
+  const idx = getLessonIndex(lessonId);
+  if (idx === 0) return true;
+  let prev = null;
+  let count = 0;
+  for (const phase of CURRICULUM) {
+    for (const lesson of phase.lessons) {
+      if (count === idx - 1) { prev = lesson.id; break; }
+      count++;
+    }
+    if (prev) break;
+  }
+  return prev ? state.completed.has(prev) : true;
+}
+
+function getLessonMeta(lessonId) {
+  for (const phase of CURRICULUM) {
+    for (const lesson of phase.lessons) {
+      if (lesson.id === lessonId) return { lesson, phase };
+    }
+  }
+  return null;
+}
+
+function getContent(lessonId) {
+  return LESSON_CONTENT[lessonId] || null;
+}
+
+function getQuiz(lessonId) {
+  return QUIZZES[lessonId] || null;
+}
+
+function generateGenericContent(lesson, phase) {
+  return {
+    why: `Understanding ${lesson.title} is essential for anyone working with technology. Whether you're collaborating with developers, evaluating tools, or building digital products, this concept comes up constantly in real-world work.`,
+    definition: `${lesson.title} is a fundamental concept in ${phase.title.toLowerCase()}. It plays a critical role in how modern software and digital systems are designed and operated.`,
+    analogy: `🌟 Think of ${lesson.title} like a key part of a well-organized office. Every piece has a purpose, works with the others, and the whole system breaks down if it's missing or misunderstood.`,
+    howItWorks: `${lesson.title} works by providing a specific, well-defined service within the larger system. It has inputs (things it receives), processes (what it does), and outputs (what it produces).\n\nKey aspects:\n• It serves a specific, focused purpose\n• It connects with other parts of the system\n• It can be scaled or modified independently\n• Understanding it helps you make better product and business decisions`,
+    diagram: `  INPUT
+    │
+    ▼
+[${lesson.title.toUpperCase()}]
+    │
+    ▼
+  OUTPUT`,
+    realWorld: [
+      `${lesson.title} is used in virtually every modern digital product.`,
+      `When you use popular apps like Grab, Netflix, or your company's CRM, ${lesson.title} is working behind the scenes.`,
+      `Cloud platforms like AWS, Google Cloud, and Azure all rely on ${lesson.title} concepts.`
+    ],
+    roles: {
+      HR: `Understanding ${lesson.title} helps HR teams evaluate software and communicate requirements to developers.`,
+      Marketing: `Marketers who understand ${lesson.title} can make better tool choices and collaborate with technical teams.`,
+      Sales: `Sales professionals can speak more credibly with technical buyers when they understand ${lesson.title}.`,
+      "Business Analyst": `BAs document and analyze systems — understanding ${lesson.title} is essential for accurate requirements.`,
+      "Product Manager": `PMs decide what to build. Understanding ${lesson.title} helps you make technically informed decisions.`,
+      Developer: `${lesson.title} is a foundational concept in your daily work as a developer.`
+    },
+    ai: `Modern AI systems interact with ${lesson.title} in significant ways. As AI becomes more integrated into products, understanding this concept helps you design and evaluate AI-powered features effectively.`,
+    misconceptions: [
+      { myth: `${lesson.title} is only relevant for technical people`, truth: "Anyone who works with software products — regardless of role — benefits from understanding this concept." },
+      { myth: `${lesson.title} is too complex to understand without coding`, truth: "The core concept is accessible to everyone. You don't need to implement it to benefit from understanding it." }
+    ],
+    takeaways: [
+      `${lesson.title} is a fundamental concept in modern technology`,
+      `It plays a critical role in how software products work`,
+      `Understanding it makes you a better collaborator with technical teams`,
+      `You don't need to implement it — you just need to understand what it does`
+    ],
+    challenge: `Research how ${lesson.title} is used in one product you use daily. Write 3 sentences explaining it to a non-technical colleague.`,
+    related: phase.lessons.slice(0, 4).map(l => l.title)
+  };
+}
+
+function generateGenericQuiz(lesson) {
+  return {
+    questions: [
+      { q: `What is the primary purpose of ${lesson.title}?`, options: [`To replace databases`, `To serve a specific, well-defined role in a software system`, `To replace the internet`, `To eliminate the need for servers`], correct: 1, difficulty: 'easy', explanation: `${lesson.title} serves a specific, focused purpose within the larger system.` },
+      { q: `Which professional role benefits MOST from understanding ${lesson.title}?`, options: [`Only developers`, `Only designers`, `Everyone who works with digital products`, `Only data scientists`], correct: 2, difficulty: 'easy', explanation: `All roles that interact with technology benefit from understanding ${lesson.title}.` },
+      { q: `${lesson.title} is described as 'fundamental.' What does this mean?`, options: [`It's complicated`, `It's a basic building block that many other concepts depend on`, `It's optional`, `It's only used in AI`], correct: 1, difficulty: 'easy', explanation: `Fundamental concepts are building blocks — other things are built on top of them.` },
+      { q: `A colleague says they 'don't need to understand ${lesson.title}' because they're not technical. Are they right?`, options: [`Yes, it's only for developers`, `No, everyone who works with software benefits from understanding it`, `Yes, it's too complex`, `Yes, only architects need to know`], correct: 1, difficulty: 'easy', explanation: `Technology literacy benefits all roles. Understanding core concepts improves communication, decision-making, and collaboration.` },
+      { q: `How does understanding ${lesson.title} help a Product Manager?`, options: [`It helps them write code`, `It helps them make technically informed product decisions`, `It helps them replace developers`, `It's irrelevant to product management`], correct: 1, difficulty: 'medium', explanation: `PMs who understand technical concepts make better decisions about what to build and can communicate requirements accurately.` },
+      { q: `${lesson.title} connects with other parts of a system. What does this imply?`, options: [`It works in complete isolation`, `Changes to it can affect other connected components`, `It never needs updates`, `It only affects the user interface`], correct: 1, difficulty: 'medium', explanation: `In software systems, components are interconnected. Understanding one helps you understand how changes affect the whole.` },
+      { q: `A Business Analyst is documenting system requirements. Why should they understand ${lesson.title}?`, options: [`They don't need to understand technical concepts`, `Accurate requirements depend on understanding how the system actually works`, `Only for writing code`, `Requirements don't involve ${lesson.title}`], correct: 1, difficulty: 'medium', explanation: `BAs who understand technical concepts write more accurate, implementable requirements.` },
+      { q: `Modern AI products interact with ${lesson.title}. What does this mean for non-technical AI product users?`, options: [`They should ignore it`, `Understanding it helps evaluate and design AI-powered features more effectively`, `Only AI researchers need to know`, `It's irrelevant to AI products`], correct: 1, difficulty: 'medium', explanation: `As AI integrates into products, understanding foundational technical concepts helps non-technical users make better decisions about AI features.` },
+      { q: `A startup says their product 'scales automatically' thanks to their approach to ${lesson.title}. What is the MOST likely implication?`, options: [`The product is automatically translated`, `The system can handle growing numbers of users without manual intervention`, `The team can shrink automatically`, `The product sells itself`], correct: 1, difficulty: 'hard', explanation: `Scalability means a system can grow to handle more load. Good ${lesson.title} design often contributes to automatic scaling.` },
+      { q: `Which statement BEST describes the relationship between understanding ${lesson.title} and career growth in tech-adjacent roles?`, options: [`Technical knowledge is irrelevant for non-developers`, `Technology literacy, including ${lesson.title}, increases your ability to contribute, collaborate, and lead in digital-first environments`, `Only senior roles need this knowledge`, `This knowledge becomes less important as AI advances`], correct: 1, difficulty: 'hard', explanation: `Technology literacy is increasingly a core professional competency. Those who understand foundational concepts lead more effective digital transformations.` }
+    ]
+  };
+}
+
+// =====================================================
+// RENDER FUNCTIONS
+// =====================================================
+function renderSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = CURRICULUM.map(phase => {
+    const isExpanded = state.expandedPhases.has(phase.id);
+    const completedCount = phase.lessons.filter(l => state.completed.has(l.id)).length;
+    return `
+      <div class="phase-group ${isExpanded ? 'open' : ''}" data-phase="${phase.id}">
+        <div class="phase-header" onclick="togglePhase('${phase.id}')">
+          <div class="phase-dot" style="background:${phase.color}"></div>
+          <span class="phase-title">${phase.title}</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+        <div class="lesson-list">
+          ${phase.lessons.map(lesson => {
+            const isCompleted = state.completed.has(lesson.id);
+            const isActive = state.currentLesson === lesson.id;
+            const isUnlocked = isLessonUnlocked(lesson.id);
+            return `<div class="lesson-item ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}"
+              onclick="${isUnlocked ? `openLesson('${lesson.id}')` : 'showLockedMsg()'}">
+              <span class="lesson-status">${isCompleted ? '✓' : isUnlocked ? '○' : '🔒'}</span>
+              ${lesson.title}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTopbar() {
+  const xpEl = document.getElementById('total-xp');
+  xpEl.textContent = state.totalXP + ' XP';
+  
+  const filled = document.getElementById('progress-fill');
+  const label = document.getElementById('progress-label');
+  const total = totalLessons();
+  const done = state.completed.size;
+  filled.style.width = (done / total * 100) + '%';
+  label.textContent = `${done} / ${total} lessons`;
+
+  const bc = document.getElementById('breadcrumb');
+  if (state.view === 'home') {
+    bc.innerHTML = '<span>🏠</span> <strong>Home</strong>';
+  } else if (state.view === 'lesson' && state.currentLesson) {
+    const meta = getLessonMeta(state.currentLesson);
+    bc.innerHTML = `<span>📚</span> ${meta.phase.title} <span style="color:var(--border)">›</span> <strong>${meta.lesson.title}</strong>`;
+  } else if (state.view === 'quiz') {
+    const meta = getLessonMeta(state.currentLesson);
+    bc.innerHTML = `<span>📝</span> Quiz <span style="color:var(--border)">›</span> <strong>${meta.lesson.title}</strong>`;
+  }
+}
+
+function renderHome() {
+  const container = document.getElementById('view-container');
+  container.innerHTML = `
+    <div class="home-hero">
+      <div class="hero-eyebrow">// TECH LITERACY PLATFORM</div>
+      <h1 class="hero-title">Understand Tech.<br>Build <em>Real Things</em>.</h1>
+      <p class="hero-desc">A complete curriculum for non-technical professionals. Learn how software works, communicate with developers, and build AI-powered products — no coding background required.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="openLesson('l1')">▶ Start Learning</button>
+        <button class="btn btn-outline" onclick="">📊 View Progress</button>
+      </div>
+
+      <div style="margin-top:48px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px">Learning Path</div>
+        <div class="phase-grid">
+          ${CURRICULUM.map((phase, i) => {
+            const done = phase.lessons.filter(l => state.completed.has(l.id)).length;
+            const pct = Math.round(done / phase.lessons.length * 100);
+            return `
+              <div class="phase-card" onclick="openLesson('${phase.lessons[0].id}')">
+                <div class="phase-card-icon" style="background:${phase.color}20;color:${phase.color}">${phase.icon}</div>
+                <h3>${phase.title}</h3>
+                <p>${phase.purpose}</p>
+                <div class="phase-card-meta">
+                  <span class="lesson-count">${phase.lessons.length} lessons</span>
+                  <span class="phase-progress">${pct}% done</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div style="margin-top:48px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">How It Works</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+          ${[
+            ['📖', 'Read', 'Each lesson is written in plain language with real-world examples and analogies.'],
+            ['🧠', 'Quiz', 'Test your understanding with 10 scenario-based questions. Need 80% to advance.'],
+            ['🏆', 'Earn', 'Collect XP, badges, and achievement titles as you progress through phases.']
+          ].map(([icon, title, desc]) => `
+            <div>
+              <div style="font-size:28px;margin-bottom:10px">${icon}</div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;margin-bottom:6px">${title}</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.5">${desc}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLesson(lessonId) {
+  const meta = getLessonMeta(lessonId);
+  if (!meta) return;
+  const { lesson, phase } = meta;
+  const content = getContent(lessonId) || generateGenericContent(lesson, phase);
+  const container = document.getElementById('view-container');
+  
+  // Find next lesson
+  let nextLesson = null;
+  let found = false;
+  for (const p of CURRICULUM) {
+    for (const l of p.lessons) {
+      if (found) { nextLesson = l.id; found = false; break; }
+      if (l.id === lessonId) found = true;
+    }
+    if (!found && nextLesson) break;
+  }
+
+  container.innerHTML = `
+    <div class="content">
+      <div class="lesson-header">
+        <div class="lesson-eyebrow">
+          <span style="color:${phase.color}">${phase.icon}</span> ${phase.title}
+        </div>
+        <h1 class="lesson-title">${lesson.title}</h1>
+        <div class="lesson-meta">
+          <div class="meta-pill">⏱ ~8 min read</div>
+          <div class="meta-pill">⭐ ${lesson.xp} XP</div>
+          <div class="meta-pill">🏅 ${lesson.achievement}</div>
+          ${state.completed.has(lessonId) ? '<div class="meta-pill" style="color:var(--accent2);border-color:rgba(62,207,178,0.3)">✓ Completed</div>' : ''}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Why Should I Care?</div>
+        <p>${content.why}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Simple Definition</div>
+        <div class="highlight-box"><p>${content.definition}</p></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Everyday Analogy</div>
+        <div class="analogy-box">
+          <span class="analogy-icon">💡</span>
+          <p>${content.analogy}</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">How It Works</div>
+        <p>${content.howItWorks.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Text Diagram</div>
+        <div class="diagram-box">${content.diagram}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Real-World Examples</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          ${content.realWorld.map(ex => `<li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#b8b8d0"><span style="color:var(--accent2);flex-shrink:0">→</span><span>${ex.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</span></li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Why It Matters at Work</div>
+        <div class="role-grid">
+          ${Object.entries(content.roles).map(([role, text]) => `
+            <div class="role-card">
+              <div class="role-name">${role}</div>
+              <p>${text}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">AI Perspective</div>
+        <div class="ai-box"><p>🤖 ${content.ai}</p></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Common Misconceptions</div>
+        <div class="misconceptions">
+          ${content.misconceptions.map(m => `
+            <div class="myth-card">
+              <span class="myth-icon">❌</span>
+              <div class="myth-content">
+                <strong>Myth: "${m.myth}"</strong>
+                <p>✓ Reality: ${m.truth}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Key Takeaways</div>
+        <div class="takeaway-list">
+          ${content.takeaways.map(t => `
+            <div class="takeaway-item">
+              <span class="takeaway-check">✓</span>
+              <span>${t}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Mini Challenge</div>
+        <div class="challenge-box">
+          <div class="challenge-title">🎯 Your Challenge</div>
+          <p>${content.challenge}</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Related Concepts</div>
+        <div class="related-pills">
+          ${content.related.map(r => `<span class="related-pill">${r}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="btn btn-outline" onclick="showHome()">← Back to Home</button>
+        <button class="btn btn-primary" onclick="startQuiz('${lessonId}')">
+          ${state.completed.has(lessonId) ? '🔄 Retake Quiz' : '📝 Take Quiz'} →
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuiz(lessonId) {
+  const meta = getLessonMeta(lessonId);
+  const { lesson, phase } = meta;
+  const quizData = getQuiz(lessonId) || generateGenericQuiz(lesson);
+  const qs = quizData.questions;
+
+  const answeredCount = Object.keys(state.quizAnswers).length;
+  
+  container.innerHTML = `
+    <div class="content">
+      <div class="quiz-container">
+        <div class="quiz-header">
+          <div style="font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:6px">${phase.title} / ${lesson.title}</div>
+          <div class="quiz-title">📝 Knowledge Check</div>
+          <div class="quiz-meta">10 questions · Pass with 80% or higher</div>
+          <div class="quiz-progress">
+            <div class="q-dots">
+              ${qs.map((_, i) => `<div class="q-dot ${state.quizAnswers[i] !== undefined ? 'answered' : ''}"></div>`).join('')}
+            </div>
+            <span style="font-size:12px;color:var(--muted);margin-left:8px">${answeredCount}/10 answered</span>
+          </div>
+        </div>
+
+        ${qs.map((q, i) => {
+          const userAnswer = state.quizAnswers[i];
+          const isAnswered = userAnswer !== undefined;
+          return `
+            <div class="question-card" id="q-${i}">
+              <div class="q-number">
+                Q${i+1} / 10
+                <span class="q-difficulty ${q.difficulty}">${q.difficulty}</span>
+              </div>
+              <div class="question-text">${q.q}</div>
+              <div class="options">
+                ${q.options.map((opt, j) => {
+                  let cls = '';
+                  if (state.quizSubmitted) {
+                    if (j === q.correct) cls = 'correct';
+                    else if (j === userAnswer && userAnswer !== q.correct) cls = 'wrong';
+                  } else if (j === userAnswer) {
+                    cls = 'selected';
+                  }
+                  return `
+                    <div class="option ${cls}" onclick="${state.quizSubmitted ? '' : `selectAnswer(${i}, ${j})`}">
+                      <div class="option-letter">${['A','B','C','D'][j]}</div>
+                      <div class="option-text">${opt}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              ${state.quizSubmitted ? `<div class="explanation-box"><strong>💡 Explanation:</strong> ${q.explanation}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+
+        <div class="quiz-controls">
+          <button class="btn btn-outline" onclick="openLesson('${lessonId}')">← Review Lesson</button>
+          ${!state.quizSubmitted 
+            ? `<button class="btn btn-primary" onclick="submitQuiz('${lessonId}')" ${answeredCount < 10 ? 'style="opacity:0.5"' : ''}>
+                Submit ${answeredCount < 10 ? `(${answeredCount}/10)` : 'Quiz'} →
+               </button>`
+            : `<button class="btn btn-primary" onclick="showResults('${lessonId}')">See Results →</button>`
+          }
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderResults(lessonId) {
+  const meta = getLessonMeta(lessonId);
+  const { lesson, phase } = meta;
+  const quizData = getQuiz(lessonId) || generateGenericQuiz(lesson);
+  const qs = quizData.questions;
+  
+  let correct = 0;
+  qs.forEach((q, i) => {
+    if (state.quizAnswers[i] === q.correct) correct++;
+  });
+  
+  const pct = Math.round(correct / qs.length * 100);
+  const passed = pct >= 80;
+
+  // Find next lesson
+  let nextLesson = null;
+  let found = false;
+  for (const p of CURRICULUM) {
+    for (const l of p.lessons) {
+      if (found) { nextLesson = l.id; found = false; break; }
+      if (l.id === lessonId) found = true;
+    }
+    if (!found && nextLesson) break;
+  }
+
+  if (passed && !state.completed.has(lessonId)) {
+    state.completed.add(lessonId);
+    state.totalXP += lesson.xp;
+    renderSidebar();
+    renderTopbar();
+  }
+
+  const container = document.getElementById('view-container');
+  container.innerHTML = `
+    <div class="content">
+      <div class="results-container" style="margin:0 auto;padding:40px 0">
+        <div class="results-circle ${passed ? 'pass' : 'fail'}">
+          <div class="results-pct">${pct}%</div>
+          <div class="results-label">${correct}/10 correct</div>
+        </div>
+
+        <h2 class="results-title">${passed ? '✅ Lesson Completed!' : '❌ Almost There!'}</h2>
+        <p class="results-message">
+          ${passed 
+            ? `Excellent work! You scored ${pct}% and have unlocked the next lesson.`
+            : `You scored ${pct}%. You need at least 80% to unlock the next lesson. Review the lesson and try again.`
+          }
+        </p>
+
+        ${passed ? `
+          <div class="badge-award">
+            <div class="badge-icon">${lesson.badge}</div>
+            <div class="badge-info">
+              <strong>${lesson.achievement}</strong>
+              <p>Badge earned for completing ${lesson.title}</p>
+            </div>
+          </div>
+          <div style="margin-bottom:24px">
+            <div class="xp-gained">⭐ +${lesson.xp} XP earned</div>
+          </div>
+        ` : `
+          <div style="background:rgba(247,111,111,0.08);border:1px solid rgba(247,111,111,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:left">
+            <div style="font-weight:600;margin-bottom:8px;font-family:'Space Grotesk',sans-serif">📚 Recommended Review</div>
+            <p style="font-size:13px;color:var(--muted);margin:0">Go back through the lesson, pay attention to the sections you're unsure about, then retake the quiz.</p>
+          </div>
+        `}
+
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="openLesson('${lessonId}')">📖 Review Lesson</button>
+          ${!passed ? `<button class="btn btn-primary" onclick="retakeQuiz('${lessonId}')">🔄 Retake Quiz</button>` : ''}
+          ${passed && nextLesson ? `<button class="btn btn-primary" onclick="openLesson('${nextLesson}')">Next Lesson →</button>` : ''}
+          ${passed && !nextLesson ? `<button class="btn btn-primary" onclick="showHome()">🎓 Complete!</button>` : ''}
+        </div>
+
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:16px">Score Breakdown</div>
+          <div style="display:flex;gap:12px;justify-content:center">
+            ${['Easy','Medium','Hard'].map(diff => {
+              const diffLower = diff.toLowerCase();
+              const qs2 = qs.filter(q => q.difficulty === diffLower);
+              const correctInDiff = qs2.filter((q, i) => state.quizAnswers[qs.indexOf(q)] === q.correct).length;
+              return `<div style="text-align:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 20px">
+                <div style="font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:${diff==='Easy'?'var(--accent2)':diff==='Medium'?'var(--accent3)':'var(--danger)'}">${correctInDiff}/${qs2.length}</div>
+                <div style="font-size:11px;color:var(--muted)">${diff}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// =====================================================
+// ACTIONS
+// =====================================================
+function togglePhase(phaseId) {
+  if (state.expandedPhases.has(phaseId)) {
+    state.expandedPhases.delete(phaseId);
+  } else {
+    state.expandedPhases.add(phaseId);
+  }
+  renderSidebar();
+}
+
+function showHome() {
+  state.view = 'home';
+  state.currentLesson = null;
+  renderTopbar();
+  renderSidebar();
+  renderHome();
+}
+
+function openLesson(lessonId) {
+  if (!isLessonUnlocked(lessonId)) {
+    alert('🔒 Complete the previous lesson first!');
+    return;
+  }
+  state.view = 'lesson';
+  state.currentLesson = lessonId;
+  state.quizAnswers = {};
+  state.quizSubmitted = false;
+  // Auto-expand the phase
+  const meta = getLessonMeta(lessonId);
+  if (meta) state.expandedPhases.add(meta.phase.id);
+  renderTopbar();
+  renderSidebar();
+  renderLesson(lessonId);
+  window.scrollTo(0, 0);
+}
+
+function startQuiz(lessonId) {
+  state.view = 'quiz';
+  state.currentLesson = lessonId;
+  state.quizAnswers = {};
+  state.quizSubmitted = false;
+  renderTopbar();
+  renderQuiz(lessonId);
+  window.scrollTo(0, 0);
+}
+
+function selectAnswer(questionIdx, optionIdx) {
+  if (state.quizSubmitted) return;
+  state.quizAnswers[questionIdx] = optionIdx;
+  renderQuiz(state.currentLesson);
+}
+
+function submitQuiz(lessonId) {
+  const answered = Object.keys(state.quizAnswers).length;
+  if (answered < 10) {
+    const remaining = 10 - answered;
+    alert(`Please answer all ${remaining} remaining question${remaining > 1 ? 's' : ''} before submitting.`);
+    return;
+  }
+  state.quizSubmitted = true;
+  renderQuiz(lessonId);
+}
+
+function showResults(lessonId) {
+  state.view = 'results';
+  renderResults(lessonId);
+  window.scrollTo(0, 0);
+}
+
+function retakeQuiz(lessonId) {
+  state.quizAnswers = {};
+  state.quizSubmitted = false;
+  state.view = 'quiz';
+  renderTopbar();
+  renderQuiz(lessonId);
+  window.scrollTo(0, 0);
+}
+
+function showLockedMsg() {
+  alert('🔒 Complete and pass the quiz for the previous lesson to unlock this one.');
+}
+
+// =====================================================
+// INIT
+// =====================================================
+const container = document.getElementById('view-container');
+renderSidebar();
+renderTopbar();
+renderHome();
+</script>
+</body>
+</html>

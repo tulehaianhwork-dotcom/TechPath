@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 76% 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 76% 48%;
+    --radius: 0.75rem;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 53%;
+    --info: 199 89% 48%;
+    --info-foreground: 210 40% 98%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+  }
+
+  .card-shadow {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02),
+                0 4px 8px rgba(0, 0, 0, 0.04),
+                0 12px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-shadow-hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04),
+                0 12px 24px rgba(0, 0, 0, 0.08),
+                0 24px 48px rgba(0, 0, 0, 0.08);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+
+  .gradient-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+
+  .gradient-muted {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.journey-line {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 0;
+}
+
+.quiz-option {
+  transition: all 0.2s ease;
+}
+
+.quiz-option:hover {
+  transform: translateX(4px);
+}
+
+.quiz-option.correct {
+  animation: correctPulse 0.5s ease;
+}
+
+.quiz-option.incorrect {
+  animation: incorrectShake 0.5s ease;
+}
+
+@keyframes correctPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes incorrectShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
