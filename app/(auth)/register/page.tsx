@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Eye, EyeOff, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Zap, Eye, EyeOff, AlertCircle, CheckCircle, ArrowRight, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -50,9 +51,12 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await signUp(email, password, fullName);
-    if (error) {
-      setError(error);
+    const result = await signUp(email, password, fullName);
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+    } else if (result.needsConfirmation) {
+      setNeedsConfirmation(true);
       setLoading(false);
     } else {
       setSuccess(true);
@@ -69,6 +73,53 @@ export default function RegisterPage() {
       setGoogleLoading(false);
     }
   };
+
+  // Email confirmation screen
+  if (needsConfirmation) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand">
+              <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
+            </div>
+            <span className="text-base font-bold text-slate-900">TechPath</span>
+          </div>
+
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 mx-auto mb-5">
+            <Mail className="h-7 w-7 text-blue-600" />
+          </div>
+
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Check your email</h1>
+          <p className="text-sm text-slate-500 mb-6">
+            We sent a confirmation link to <span className="font-semibold text-slate-700">{email}</span>
+          </p>
+
+          <div className="rounded-lg bg-slate-100 p-4 mb-6 text-left">
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Click the link in your email to verify your account. After verification, you can sign in.
+            </p>
+          </div>
+
+          <Link href="/login">
+            <Button variant="outline" className="w-full">
+              Back to Sign In
+            </Button>
+          </Link>
+
+          <p className="mt-4 text-xs text-slate-400">
+            Didn&apos;t receive it? Check your spam folder or{' '}
+            <button
+              onClick={() => setNeedsConfirmation(false)}
+              className="text-accent hover:underline"
+            >
+              try again
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">

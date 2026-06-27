@@ -18,7 +18,7 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -79,18 +79,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/`,
+      },
     });
-    return { error: error?.message ?? null };
+
+    if (error) {
+      return { error: error.message, needsConfirmation: false };
+    }
+
+    // Check if user needs email confirmation
+    // If session is null but user exists, email confirmation is required
+    if (data.user && !data.session) {
+      return {
+        error: null,
+        needsConfirmation: true
+      };
+    }
+
+    return { error: null, needsConfirmation: false };
   };
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` },
+      options: {
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/`,
+      },
     });
     return { error: error?.message ?? null };
   };
@@ -101,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/settings?tab=security`,
+      redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/settings?tab=security`,
     });
     return { error: error?.message ?? null };
   };
