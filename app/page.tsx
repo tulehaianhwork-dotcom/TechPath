@@ -11,7 +11,6 @@ import {
   Award,
   TrendingUp,
 } from 'lucide-react';
-import { TopBar } from '@/components/TopBar';
 import { PhaseCard } from '@/components/PhaseCard';
 import { XPBadge } from '@/components/XPBadge';
 import {
@@ -34,10 +33,7 @@ export default function Dashboard() {
   const currentPhaseData = phases.find((p) => p.id === progress.currentPhase);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <TopBar />
-
-      <div className="p-6 space-y-6">
+    <div className="space-y-6">
         {/* Welcome Section */}
         <div className="animate-fade-in rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white card-shadow">
           <div className="flex items-center justify-between">
@@ -133,6 +129,5 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
