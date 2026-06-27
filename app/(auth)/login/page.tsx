@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Zap, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
@@ -40,10 +40,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get('from') ?? '/';
+
+  // If user is already logged in, redirect
+  useEffect(() => {
+    if (user) {
+      router.replace(from);
+    }
+  }, [user, router, from]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -56,7 +63,10 @@ export default function LoginPage() {
       setError(error);
       setLoading(false);
     } else {
-      router.push(from);
+      // Small delay to let session establish, then redirect
+      setTimeout(() => {
+        router.push(from);
+      }, 100);
     }
   };
 
@@ -191,7 +201,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   className="pr-10"
                   disabled={loading}
                 />

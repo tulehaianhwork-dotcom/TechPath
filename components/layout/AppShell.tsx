@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,23 +35,37 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + '/'));
 
   useEffect(() => {
-    if (loading) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only run after initial mount and loading is done
+    if (!mounted || loading) return;
+
+    // If authenticated and on auth page, redirect to home
+    if (user && isAuthRoute) {
+      router.replace('/');
+      return;
+    }
+
+    // If not authenticated and not on auth page, redirect to login
     if (!user && !isAuthRoute) {
       router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     }
-    if (user && isAuthRoute) {
-      router.replace('/');
-    }
-  }, [user, loading, isAuthRoute, pathname, router]);
+  }, [user, loading, isAuthRoute, pathname, router, mounted]);
+
+  // Show loading during initial hydration
+  if (!mounted) return <LoadingScreen />;
 
   // Show loading while checking auth
   if (loading) return <LoadingScreen />;
 
-  // Auth pages — clean centered layout
+  // Auth pages — clean centered layout (no redirect loop)
   if (isAuthRoute) {
     return (
       <div className="min-h-screen bg-slate-50">
